@@ -93,10 +93,11 @@ matrix_transpose <- function(A) {
   n <- ncol(A)
 
   # Initialize result matrix with swapped dimensions
-
+  # Note: This explicit loop implementation is for educational purposes.
+  # In practice, R's built-in t() function is more efficient.
   At <- matrix(0, nrow = n, ncol = m)
 
-  # Transpose
+  # Transpose using explicit indexing
   for (i in 1:m) {
     for (j in 1:n) {
       At[j, i] <- A[i, j]

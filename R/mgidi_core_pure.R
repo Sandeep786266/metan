@@ -15,8 +15,13 @@
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
 #' @md
 
-# Constant to avoid division by zero in MGIDI calculations
-# Small value used to replace exact zeros in distance computation
+# Constant to avoid numerical issues in MGIDI factor contribution calculations
+# When a genotype scores exactly the same as the ideotype on a factor, the
+# difference is zero, which would cause division by zero when computing
+# relative factor contributions (contrib_fac = |diff| / sum(|diff|) * 100).
+# This small value preserves the ranking while avoiding computational errors.
+# The value 1e-10 is chosen to be negligibly small compared to typical factor
+# score differences while still being representable in double precision.
 MGIDI_ZERO_TOLERANCE <- 1e-10
 
 #' MGIDI Index Computation (Pure R)

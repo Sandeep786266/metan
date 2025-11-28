@@ -76,7 +76,8 @@ plot_mgidi_ranking <- function(mgidi_result,
   mgidi_df[[gen_col]] <- factor(mgidi_df[[gen_col]],
                                 levels = rev(mgidi_df[[gen_col]]))
 
-  # Create plot
+  # Create plot - always use horizontal bars for MGIDI ranking
+  # (flip coordinates so bars extend horizontally)
   p <- ggplot(mgidi_df, aes(x = .data[[gen_col]], y = .data[[mgidi_col]], fill = .data[["Status"]])) +
     geom_bar(stat = "identity", color = "black", linewidth = 0.3) +
     scale_fill_manual(values = c("Selected" = col_selected,
@@ -90,10 +91,6 @@ plot_mgidi_ranking <- function(mgidi_result,
       panel.grid.major.y = element_blank(),
       panel.grid.minor = element_blank()
     )
-
-  if (rotate_x && !selected_only && is.null(n)) {
-    p <- p + coord_flip()
-  }
 
   return(p)
 }
@@ -162,22 +159,32 @@ plot_factor_contributions <- function(mgidi_result,
   }
 
   # Reshape for ggplot - using base R to avoid external dependencies
-  # This is a simple reshape operation
+  # Pre-allocate for efficiency
   n_rows <- nrow(contri_df)
   n_factors <- length(factor_cols)
-  contri_long <- data.frame(
-    stringsAsFactors = FALSE
-  )
+  total_rows <- n_rows * n_factors
+
+  # Pre-allocate vectors for the result
+  gen_vec <- character(total_rows)
+  factor_vec <- character(total_rows)
+  contrib_vec <- numeric(total_rows)
+
+  idx <- 1
   for (i in 1:n_rows) {
     for (j in 1:n_factors) {
-      contri_long <- rbind(contri_long, data.frame(
-        GEN_temp = contri_df[[gen_col]][i],
-        Factor = factor_cols[j],
-        Contribution = contri_df[[factor_cols[j]]][i],
-        stringsAsFactors = FALSE
-      ))
+      gen_vec[idx] <- contri_df[[gen_col]][i]
+      factor_vec[idx] <- factor_cols[j]
+      contrib_vec[idx] <- contri_df[[factor_cols[j]]][i]
+      idx <- idx + 1
     }
   }
+
+  contri_long <- data.frame(
+    GEN_temp = gen_vec,
+    Factor = factor_vec,
+    Contribution = contrib_vec,
+    stringsAsFactors = FALSE
+  )
   names(contri_long)[1] <- gen_col
 
   # Create plot
