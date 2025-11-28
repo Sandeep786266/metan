@@ -77,7 +77,7 @@ plot_mgidi_ranking <- function(mgidi_result,
                                 levels = rev(mgidi_df[[gen_col]]))
 
   # Create plot
-  p <- ggplot(mgidi_df, aes_string(x = gen_col, y = mgidi_col, fill = "Status")) +
+  p <- ggplot(mgidi_df, aes(x = .data[[gen_col]], y = .data[[mgidi_col]], fill = .data[["Status"]])) +
     geom_bar(stat = "identity", color = "black", linewidth = 0.3) +
     scale_fill_manual(values = c("Selected" = col_selected,
                                  "Not Selected" = col_nonselected)) +
@@ -161,18 +161,29 @@ plot_factor_contributions <- function(mgidi_result,
     contri_df <- contri_df[contri_df[[gen_col]] %in% genotypes, ]
   }
 
-  # Reshape for ggplot
-  contri_long <- tidyr::pivot_longer(
-    contri_df,
-    cols = all_of(factor_cols),
-    names_to = "Factor",
-    values_to = "Contribution"
+  # Reshape for ggplot - using base R to avoid external dependencies
+  # This is a simple reshape operation
+  n_rows <- nrow(contri_df)
+  n_factors <- length(factor_cols)
+  contri_long <- data.frame(
+    stringsAsFactors = FALSE
   )
+  for (i in 1:n_rows) {
+    for (j in 1:n_factors) {
+      contri_long <- rbind(contri_long, data.frame(
+        GEN_temp = contri_df[[gen_col]][i],
+        Factor = factor_cols[j],
+        Contribution = contri_df[[factor_cols[j]]][i],
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+  names(contri_long)[1] <- gen_col
 
   # Create plot
   if (type == "stacked") {
-    p <- ggplot(contri_long, aes_string(x = gen_col, y = "Contribution",
-                                        fill = "Factor")) +
+    p <- ggplot(contri_long, aes(x = .data[[gen_col]], y = .data[["Contribution"]],
+                                        fill = .data[["Factor"]])) +
       geom_bar(stat = "identity", position = position,
                color = "black", linewidth = 0.2) +
       labs(title = title, x = x_lab, y = y_lab) +
@@ -184,9 +195,9 @@ plot_factor_contributions <- function(mgidi_result,
       scale_y_continuous(expand = c(0, 0))
   } else if (type == "radar") {
     # Radar plot (simplified version)
-    p <- ggplot(contri_long, aes_string(x = gen_col, y = "Contribution",
-                                        group = "Factor", color = "Factor")) +
-      geom_polygon(aes_string(fill = "Factor"), alpha = 0.2) +
+    p <- ggplot(contri_long, aes(x = .data[[gen_col]], y = .data[["Contribution"]],
+                                        group = .data[["Factor"]], color = .data[["Factor"]])) +
+      geom_polygon(aes(fill = .data[["Factor"]]), alpha = 0.2) +
       geom_line(linewidth = 0.8) +
       coord_polar() +
       labs(title = title) +
@@ -286,7 +297,7 @@ plot_selection_gains <- function(mgidi_result,
   }
 
   # Create plot
-  p <- ggplot(plot_df, aes_string(x = "Trait", y = y_var, fill = "Desired")) +
+  p <- ggplot(plot_df, aes(x = .data[["Trait"]], y = .data[[y_var]], fill = .data[["Desired"]])) +
     geom_bar(stat = "identity", color = "black", linewidth = 0.3) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     scale_fill_manual(values = c("Desired" = col_positive,
@@ -378,14 +389,22 @@ biplot_mgidi <- function(mgidi_result,
   p <- ggplot() +
     # Add genotype points
     geom_point(data = gen_df,
-               aes_string(x = "Factor1", y = "Factor2", color = "Status"),
+               aes(x = .data[["Factor1"]], y = .data[["Factor2"]], color = .data[["Status"]]),
                size = point_size, alpha = 0.8) +
     scale_color_manual(values = c("Selected" = col_selected,
                                   "Not Selected" = col_nonselected)) +
-    # Add labels
-    ggrepel::geom_text_repel(data = gen_df,
-                             aes_string(x = "Factor1", y = "Factor2", label = "Genotype"),
-                             size = label_size, max.overlaps = 15) +
+    # Add labels - use ggrepel if available, otherwise use geom_text
+    {
+      if (requireNamespace("ggrepel", quietly = TRUE)) {
+        ggrepel::geom_text_repel(data = gen_df,
+                                 aes(x = .data[["Factor1"]], y = .data[["Factor2"]], label = .data[["Genotype"]]),
+                                 size = label_size, max.overlaps = 15)
+      } else {
+        geom_text(data = gen_df,
+                  aes(x = .data[["Factor1"]], y = .data[["Factor2"]], label = .data[["Genotype"]]),
+                  size = label_size, vjust = -0.5)
+      }
+    } +
     # Add axis lines
     geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +

@@ -1,6 +1,10 @@
 # Example: Simple MGIDI Demonstration
 # ====================================
 # A simple example to demonstrate the basic usage of the MGIDI algorithm.
+#
+# This example uses the pure R implementation of MGIDI (mgidi_index function)
+# which provides educational, transparent code without external dependencies
+# for core statistical computations.
 
 library(metan)
 

@@ -1,6 +1,10 @@
 # Unit Tests for MGIDI Implementation
 # ====================================
 # Tests for the pure R implementation of MGIDI and related functions.
+#
+# Note: The metan package is loaded to make functions available. In production,
+# the functions would be installed as part of the package. These tests verify
+# the pure R implementation functions added to the metan package.
 
 library(metan)
 

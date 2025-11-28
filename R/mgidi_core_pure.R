@@ -15,6 +15,10 @@
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
 #' @md
 
+# Constant to avoid division by zero in MGIDI calculations
+# Small value used to replace exact zeros in distance computation
+MGIDI_ZERO_TOLERANCE <- 1e-10
+
 #' MGIDI Index Computation (Pure R)
 #'
 #' @description
@@ -234,8 +238,8 @@ mgidi_index <- function(data,
 
   # Step 11: Compute MGIDI (Euclidean distance from ideotype)
   gen_ide <- sweep(scores, 2, ideotype_scores, "-")
-  # Avoid exact zeros
-  gen_ide[gen_ide == 0] <- 1e-10
+  # Avoid exact zeros to prevent issues in factor contribution calculation
+  gen_ide[gen_ide == 0] <- MGIDI_ZERO_TOLERANCE
 
   mgidi_vals <- sqrt(rowSums(gen_ide^2))
   mgidi_order <- order(mgidi_vals)

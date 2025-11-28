@@ -2,6 +2,17 @@
 # =======================================
 # This example demonstrates the use of MGIDI for selecting superior wheat
 # genotypes based on multiple traits.
+#
+# Functions used from this implementation (pure R):
+#   - mgidi_index: Main MGIDI computation
+#   - select_genotypes: Selection based on MGIDI
+#   - selection_differential: Compute genetic gains
+#   - contribution_factors: Factor contributions
+#   - summary_selected: Summary statistics
+#   - plot_mgidi_ranking, plot_factor_contributions, etc.: Visualization
+#
+# Note: The metan package is loaded for compatibility with existing code,
+# but the pure R implementation functions are used for MGIDI analysis.
 
 library(metan)
 
